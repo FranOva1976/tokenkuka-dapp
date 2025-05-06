@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interfaz de Token Kuka</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Interfaz de Token Kuka</h1>
+        <p id="status">Conectando a Metamask...</p>
+        <button id="connectButton">Conectar Wallet</button>
+
+        <div id="transferSection" style="display:none;">
+            <h2>Transferir Tokens</h2>
+            <input type="text" id="recipient" placeholder="Dirección del destinatario">
+            <input type="number" id="amount" placeholder="Cantidad">
+            <button id="transferButton">Enviar Tokens</button>
+            <button onclick="consultarSaldo()">Consultar saldo</button>
+            <p id="saldo"></p>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
