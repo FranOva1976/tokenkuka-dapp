@@ -1,50 +1,58 @@
 let provider;
 let signer;
 let contract;
-
-const contractAddress = "0xC3b09A8518f9f85Dd73c3C5512Dc628A199bdd6C"; // Dirección del contrato desplegado
-const contractABI = [
-    "function transfer(address to, uint amount) public returns (bool)",
-    "function balanceOf(address account) external view returns (uint256)"
+const contractAddress = "0xC3b09A8518f9f85Dd73c3C5512Dc628A199bdd6C";
+const abi = [{
+    "inputs": [
+      { "internalType": "address", "name": "to", "type": "address" },
+      { "internalType": "uint256", "name": "amount", "type": "uint256" }
+    ],
+    "name": "transfer",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "address", "name": "account", "type": "address" }],
+    "name": "balanceOf",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
+  }
 ];
 
 async function conectarWallet() {
-    if (window.ethereum) {
-        try {
-            provider = new ethers.providers.Web3Provider(window.ethereum);
-            await provider.send("eth_requestAccounts", []);
-            signer = provider.getSigner();
-            contract = new ethers.Contract(contractAddress, contractABI, signer);
-            document.getElementById("status").innerText = "Wallet conectada";
-            document.getElementById("connectButton").style.display = "none";
-            document.getElementById("transferSection").style.display = "block";
-        } catch (err) {
-            console.error(err);
-            document.getElementById("status").innerText = "Error al conectar Wallet";
-        }
-    } else {
-        document.getElementById("status").innerText = "Instala Metamask para usar esta dApp.";
-    }
+  if (typeof window.ethereum !== "undefined") {
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    document.getElementById("status").innerText = "Wallet conectada";
+    contract = new ethers.Contract(contractAddress, abi, signer);
+    document.getElementById("transferSection").style.display = "block";
+  } else {
+    document.getElementById("status").innerText = "Instala Metamask para usar esta dApp.";
+  }
+}
+
+async function transferirTokens() {
+  const destinatario = document.getElementById("recipient").value;
+  const cantidad = document.getElementById("amount").value;
+  if (contract) {
+    const cantidadWei = ethers.utils.parseUnits(cantidad, 18);
+    const tx = await contract.transfer(destinatario, cantidadWei);
+    await tx.wait();
+    alert("Transferencia completada");
+  }
 }
 
 async function consultarSaldo() {
+  if (contract && signer) {
     const address = await signer.getAddress();
-    const balance = await contract.balanceOf(address);
-    document.getElementById("saldo").innerText = `Tu saldo es: ${ethers.utils.formatUnits(balance, 18)} KUKA`;
+    const saldo = await contract.balanceOf(address);
+    const saldoFormateado = ethers.utils.formatUnits(saldo, 18);
+    document.getElementById("saldo").innerText = `Tu saldo es: ${saldoFormateado} KUKA`;
+  }
 }
 
-async function enviarTokens() {
-    const to = document.getElementById("recipient").value;
-    const amount = document.getElementById("amount").value;
-    try {
-        const tx = await contract.transfer(to, ethers.utils.parseUnits(amount, 18));
-        await tx.wait();
-        alert("Transferencia completada");
-    } catch (error) {
-        console.error(error);
-        alert("Error al enviar tokens");
-    }
-}
-
-document.getElementById("connectButton").onclick = conectarWallet;
-document.getElementById("transferButton").onclick = enviarTokens;
+document.getElementById("connectButton").addEventListener("click", conectarWallet);
+document.getElementById("transferButton").addEventListener("click", transferirTokens);
